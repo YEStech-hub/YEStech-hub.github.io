@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YEStech Hub Portfolio</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f7f8fb;
+        color: #20242c;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+      }
+
+      main {
+        width: min(90vw, 720px);
+        padding: 48px 24px;
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 750;
+      }
+
+      p {
+        margin: 0;
+        font-size: 1.125rem;
+        line-height: 1.7;
+        color: #4f5a6a;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+        padding: 8px 12px;
+        border: 1px solid #d8deea;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #1f6f43;
+        font-size: 0.925rem;
+        font-weight: 650;
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #25b46b;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="status">
+        <span class="dot" aria-hidden="true"></span>
+        Deploy check
+      </div>
+      <h1>안녕하세요, YEStech Hub입니다.</h1>
+      <p>포트폴리오 사이트 준비 중입니다. 이 페이지가 보인다면 GitHub Pages 배포가 정상적으로 동작하고 있습니다.</p>
+    </main>
+  </body>
+</html>
