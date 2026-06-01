@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f2eb">
+  <title>선물 후보</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap");
+
+    :root {
+      --ink: #282520;
+      --muted: #726d66;
+      --paper: #fffdf9;
+      --cream: #f7f2eb;
+      --line: #e6ded4;
+      --accent: #dd6f55;
+      --accent-soft: #fce9e1;
+      --shadow: 0 14px 34px rgba(91, 73, 58, 0.13);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--cream);
+      font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      word-break: keep-all;
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .wrap {
+      width: min(100% - 32px, 920px);
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 62px 0 42px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "DM Serif Display", "Noto Sans KR", serif;
+      font-size: clamp(46px, 8vw, 68px);
+      font-weight: 400;
+      letter-spacing: -0.06em;
+      line-height: 1;
+    }
+
+    section {
+      margin-bottom: 52px;
+    }
+
+    .section-head {
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 23px;
+      letter-spacing: -0.055em;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .product-card {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      width: 100%;
+      padding: 0;
+      border: 2px solid transparent;
+      border-radius: 20px;
+      color: inherit;
+      background: var(--paper);
+      box-shadow: 0 6px 16px rgba(91, 73, 58, 0.06);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    .product-card:hover,
+    .product-card:focus-visible {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    .product-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 12px 28px rgba(221, 111, 85, 0.2);
+    }
+
+    .card-photo {
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: #f8f8f8;
+    }
+
+    .card-photo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 180ms ease;
+    }
+
+    .product-card:hover .card-photo img {
+      transform: scale(1.025);
+    }
+
+    .card-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 14px 15px;
+    }
+
+    .card-label strong,
+    .card-label small {
+      display: block;
+    }
+
+    .card-label strong {
+      font-size: 15px;
+      letter-spacing: -0.04em;
+    }
+
+    .card-label small {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .card-mark {
+      display: grid;
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border: 1.5px solid #cfc7bd;
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .product-card.selected .card-mark {
+      border-color: var(--accent);
+      color: white;
+      background: var(--accent);
+    }
+
+    .result {
+      position: sticky;
+      bottom: 14px;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 0 auto 20px;
+      padding: 14px 16px;
+      border: 1px solid rgba(221, 111, 85, 0.28);
+      border-radius: 18px;
+      background: rgba(255, 253, 249, 0.94);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .result small,
+    .result strong {
+      display: block;
+    }
+
+    .result small {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .result strong {
+      font-size: 14px;
+      letter-spacing: -0.04em;
+    }
+
+    .action {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 999px;
+      color: white;
+      background: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .action:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      background: rgba(40, 37, 32, 0.62);
+      overflow-y: auto;
+    }
+
+    .modal.open {
+      display: block;
+    }
+
+    .modal-panel {
+      width: min(100% - 24px, 860px);
+      margin: 20px auto;
+      overflow: hidden;
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: 0 22px 60px rgba(40, 37, 32, 0.28);
+    }
+
+    .modal-head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 249, 0.94);
+      backdrop-filter: blur(16px);
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.045em;
+    }
+
+    .close {
+      display: grid;
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--ink);
+      background: white;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .modal-content {
+      padding: 18px;
+    }
+
+    .modal-content h4 {
+      margin: 4px 0 12px;
+      font-size: 15px;
+      letter-spacing: -0.04em;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .gallery img {
+      display: block;
+      width: 100%;
+      border-radius: 12px;
+      background: #f8f8f8;
+    }
+
+    .description-images {
+      overflow: hidden;
+      border-radius: 12px;
+      background: #f8f8f8;
+    }
+
+    .description-images picture,
+    .description-images img {
+      display: block;
+      width: 100%;
+    }
+
+    .modal-actions {
+      position: sticky;
+      bottom: 0;
+      z-index: 1;
+      padding: 14px 18px;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 253, 249, 0.94);
+      backdrop-filter: blur(16px);
+    }
+
+    .modal-actions .action {
+      width: 100%;
+      padding: 13px 16px;
+      font-size: 14px;
+    }
+
+    @media (min-width: 720px) {
+      .wallet-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .wrap {
+        width: min(100% - 24px, 920px);
+      }
+
+      .hero {
+        padding: 48px 0 32px;
+      }
+
+      section {
+        margin-bottom: 42px;
+      }
+
+      .card-body {
+        padding: 12px;
+      }
+
+      .card-label strong {
+        font-size: 14px;
+      }
+
+      .modal-panel {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        border-radius: 0;
+      }
+
+      .modal-content {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero wrap">
+    <h1>선물 후보</h1>
+  </header>
+
+  <main class="wrap">
+    <section aria-labelledby="wallet-title">
+      <div class="section-head">
+        <h2 id="wallet-title">마그넷 스탠드 카드 월렛</h2>
+      </div>
+      <div class="product-grid wallet-grid" id="walletGrid"></div>
+    </section>
+
+    <section aria-labelledby="ring-title">
+      <div class="section-head">
+        <h2 id="ring-title">듀얼 마그넷 링홀더</h2>
+      </div>
+      <div class="product-grid" id="ringGrid"></div>
+    </section>
+
+    <div class="result" role="status" aria-live="polite">
+      <div>
+        <small>선택한 선물</small>
+        <strong id="selectedGift">이미지를 눌러 자세히 보고 선택해 줘</strong>
+      </div>
+      <button class="action" id="copyButton" type="button" disabled>선택 복사</button>
+    </div>
+  </main>
+
+  <div class="modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <h3 id="modalTitle"></h3>
+        <button class="close" id="closeModal" type="button" aria-label="닫기">×</button>
+      </div>
+      <div class="modal-content">
+        <h4>제품 사진</h4>
+        <div class="gallery" id="gallery"></div>
+        <h4>제품 설명</h4>
+        <div class="description-images" id="descriptionImages"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="action" id="selectProduct" type="button">이 제품 선택</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cdn = "https://images.samsung.com/kdp/";
+    const goods = (names) => names.map((name) => `${cdn}goods/2026/02/10/${name}.png`);
+    const cms = (pairs) => pairs.map(([mobile, desktop]) => ({
+      mobile: `${cdn}cms_task/${mobile}.jpg`,
+      desktop: `${cdn}cms_task/${desktop}.jpg`
+    }));
+
+    const products = [
+      {
+        id: "wallet-black",
+        type: "wallet",
+        name: "카드 월렛 - 블랙",
+        note: "기본 디자인",
+        images: goods(["3eb51b45-164b-4295-9c5e-bc2d7ee69ac1", "f90cb890-f46e-4e45-8e25-261324e50472", "46a2391f-3341-4764-807e-9dfb2d6dac43", "abc1812f-331d-4044-88e7-ef474dfc5a65", "e53edb29-c74c-4832-91e0-67277710385a"]),
+        details: cms([["C20260210010022/57281/107c45a5-6bd4-44a5-ac8f-108893782ddd", "C20260210010022/57281/866d582e-9943-4ff5-8118-309d2ce67fb1"], ["C20260210010023/57282/b98f9c44-395b-4760-b4a9-58fa6d455e37", "C20260210010023/57282/3ac520f0-1a78-45b7-8acc-199815e69436"], ["C20260210010024/57283/eba7e6d7-1a26-48ed-9236-f18dbf816bb8", "C20260210010024/57283/4082b73a-95c4-49db-984b-9d7972004cf9"], ["C20260210010025/57284/63955ed6-fb20-4c62-bc2f-46a55d75f8d0", "C20260210010025/57284/7f5e3bed-a297-46d5-af74-a40aa3ef3b71"], ["C20260210010026/57285/5abf09d7-4a6a-4258-8300-fe58364959ea", "C20260210010026/57285/626e912c-2927-4fbc-8bab-deac917791a5"]])
+      },
+      {
+        id: "wallet-violet",
+        type: "wallet",
+        name: "카드 월렛 - 바이올렛",
+        note: "기본 디자인",
+        images: goods(["0b94e37b-30b6-4fa0-81f5-91b9da0f7a44", "0cd43bec-f902-4321-9a39-3d5e51c0b09f", "b88df49f-464f-42ac-afc9-d219ea1a8e49", "4e91be30-ad96-4be9-8f62-c59506413389", "c716f903-b4d0-45bd-a91d-0422c5400941"]),
+        details: cms([["C20260210010017/57276/5506b10a-8c70-49f2-b208-cb419141d423", "C20260210010017/57276/9f0a3496-ad42-484d-8e91-559a0b4e8274"], ["C20260210010018/57277/be4f5583-cce7-438d-a094-380ff14b3df2", "C20260210010018/57277/2b25ed61-0a17-4265-88a1-4c099b84c14a"], ["C20260210010019/57278/b32ee551-7d57-4367-8609-2d0ab2d7aa2f", "C20260210010019/57278/f72f9655-0f60-4303-9a1b-5d62a864a3ab"], ["C20260210010020/57279/c9657902-2e31-4324-b603-a97ad452cb2f", "C20260210010020/57279/ddce729c-252b-42c1-92c4-c9d64122f89c"], ["C20260210010021/57280/f103904c-8695-4dbf-9a33-92539d075f00", "C20260210010021/57280/1ccaa579-be48-4625-ac31-5ece7c68ddc0"]])
+      },
+      {
+        id: "wallet-gray",
+        type: "wallet",
+        name: "카드 월렛 - 그레이",
+        note: "기본 디자인",
+        images: goods(["0d1ea93e-dc46-4863-9824-0eaf54db916d", "a1472b7d-db99-4ce9-b7a1-2fa8f159cc4f", "080c8fbd-b8a9-4f05-a40d-1e3effabfd9e", "0ce57f57-5e77-4535-9888-ed17aca20849", "58eb2849-4b73-413c-90a1-3cb49073ad48"]),
+        details: cms([["C20260210010007/57266/38ef0d8a-6094-40aa-b38c-91effa545691", "C20260210010007/57266/84d69735-7e10-4b07-bc44-cae454f870f6"], ["C20260210010008/57267/9ce38c4f-5a60-4b80-9dea-053be0f12ca2", "C20260210010008/57267/a02288ca-69dc-4794-85cb-3b1e916c998d"], ["C20260210010009/57268/1e0f4d6e-f8ba-4541-9b3b-f53aab9e75a2", "C20260210010009/57268/1f864756-bc93-4581-b8c2-8492411a486f"], ["C20260210010010/57269/b3738f15-23ec-459d-b5b7-2a0e26f8b127", "C20260210010010/57269/82274ab6-5866-4a31-a161-a3d886232e03"], ["C20260210010011/57270/2582b171-75b6-44b0-8098-caf520ddc08e", "C20260210010011/57270/065ff7d2-cdea-4803-91c0-2675b8d4787f"]])
+      },
+      {
+        id: "wallet-light-blue",
+        type: "wallet",
+        name: "카드 월렛 - 라이트블루",
+        note: "기본 디자인",
+        images: goods(["ae021848-5f03-48a0-a91f-939601598b55", "32f4dea4-8489-47a8-b4df-2502891cb60d", "31d6a013-9d90-40af-95e0-54cb75e19c36", "e36f4afe-ab04-4ceb-9671-1dc30acde34e", "258d463e-8e74-4fca-9220-09b35f2b37f8"]),
+        details: cms([["C20260210010012/57271/68457d3e-c413-4ee1-9a25-ee708af4c138", "C20260210010012/57271/b8857fa7-1962-4981-9597-9556afe6fb04"], ["C20260210010013/57272/61bf0a20-a339-4d24-bb2f-40a93314c003", "C20260210010013/57272/e745b006-2683-4f95-9eae-c5a31c3903df"], ["C20260210010014/57273/d4e31b28-44f5-4d1e-9d1d-b9b160351509", "C20260210010014/57273/aa63d6dd-3892-46e8-b423-f159eafd8a1c"], ["C20260210010015/57274/776ddbdb-3e67-4b82-a656-28d981f3422e", "C20260210010015/57274/dc2434a8-bacc-4770-8beb-ba5bc03ac222"], ["C20260210010016/57275/a2dd54a0-55d6-4f9d-8fe8-fe6cf7b0eb43", "C20260210010016/57275/fc2aa2eb-3ba8-4034-8512-45ce0d61321e"]])
+      },
+      {
+        id: "wallet-brachio",
+        type: "wallet",
+        name: "카드 월렛 - 조구만 브라키오",
+        note: "캐릭터 디자인",
+        images: goods(["c703cba1-8e21-4211-8ef7-16284eed7d10", "894c8ad3-3b35-4c83-bf2a-70081790e2da", "482cae4b-e2ad-47e7-8523-e2f23fa5cc0d"]),
+        details: cms([["C20260210010027/57286/bf56aa3c-7592-4004-b52a-0b4b0317af19", "C20260210010027/57286/0d0dbcd5-ef17-404e-867e-ec3742255de4"], ["C20260210010028/57287/c7b29a5b-76d4-435a-bbb6-25655c3bc25b", "C20260210010028/57287/cef90903-ad61-42d0-9fec-981c3381abe8"], ["C20260210010029/57288/3a186523-82bd-4347-bbcb-b2eaea77c189", "C20260210010029/57288/81107b14-45c2-4ab2-b169-5daad3109c6c"]])
+      },
+      {
+        id: "wallet-choonsik",
+        type: "wallet",
+        name: "카드 월렛 - 춘식",
+        note: "캐릭터 디자인",
+        images: goods(["0b370049-7ebe-40d1-adab-a184ba2f344c", "74dd43cb-0709-4b30-b7e4-b3ff61d31f74", "09d8372f-0627-4291-b4d6-16e850af4022"]),
+        details: cms([["C20260210010031/57290/f6612998-4fbc-4f95-ac53-4d4676894fa7", "C20260210010031/57290/6f0066c5-09e1-4014-bee8-b5a280898329"], ["C20260210010032/57291/0f4b279d-efda-47fe-87a0-163c1d24bbe4", "C20260210010032/57291/935bc2fb-4fa6-423f-8e2f-60e2b2bef283"], ["C20260210010033/57292/59847508-d07f-448f-8253-d4a790228591", "C20260210010033/57292/57de3753-6eaa-4e38-8b35-3feff803c7fd"]])
+      },
+      {
+        id: "ring-silver",
+        type: "ring",
+        name: "링홀더 - 실버",
+        note: "듀얼 마그넷 링홀더",
+        images: goods(["79c8cf6f-e167-41d3-b3fb-75db7295a0fb", "69ce0cb5-0cc7-4c92-8446-b18c57c3b343", "7884f6a3-fc24-4888-891e-eccd381379f5", "7ce77f82-6c3e-4001-bfbc-fe140759d16d", "0aef0785-ff4b-4cf9-b74e-a405e44889d4"]),
+        details: cms([["C20260210010039/57298/699b4f1f-e432-45e3-8830-aa98768005dc", "C20260210010039/57298/de7da8a9-70d3-4cb5-9bb0-7d5e521e6643"], ["C20260210010040/57299/f6fde679-4d58-4c0a-abe1-c2c0a5bc4800", "C20260210010040/57299/1d7301b3-8a14-49cf-90d2-afdfeba3711a"], ["C20260210010041/57300/337908da-2b6a-4961-83f2-b42fb6d1241a", "C20260210010041/57300/7baec912-0801-41a0-a23d-5b3cd506bd2c"], ["C20260210010042/57301/1ecda7ae-d30a-44a7-9d40-6e966a8c5644", "C20260210010042/57301/ee10e7ba-12b4-44d1-a455-00aab9faee62"]])
+      },
+      {
+        id: "ring-black",
+        type: "ring",
+        name: "링홀더 - 블랙",
+        note: "듀얼 마그넷 링홀더",
+        images: goods(["e567ec0c-abec-4a19-9698-9a7dc48ba028", "6f54d69a-2bf0-4201-a600-3ea6e5f0a0b8", "420f3a55-3585-4f74-9410-3e9bceebe9ca", "6cb1f87c-93f9-4376-929d-d2521415b8b0", "c1b35d12-a19a-457a-a7ea-085e9d85e15a"]),
+        details: cms([["C20260210010035/57294/32f0afd5-be6c-43d6-895b-1ba62080d68e", "C20260210010035/57294/e326b5a1-fc29-488b-9340-309f592ae48d"], ["C20260210010036/57295/ca29eb0e-4518-4850-94ac-c9f856c782b2", "C20260210010036/57295/7f98a05a-30c4-4b95-9bab-896c233332f5"], ["C20260210010037/57296/32681886-93a0-4dd6-801b-6f1ed86faa20", "C20260210010037/57296/c0c7db36-34d5-4f96-8810-6558cda8df66"], ["C20260210010038/57297/ccfed9fd-e941-486a-9df3-ceddfec24397", "C20260210010038/57297/93eb07c0-e6ed-420a-8aec-cacfc29829fc"]])
+      }
+    ];
+
+    const walletGrid = document.getElementById("walletGrid");
+    const ringGrid = document.getElementById("ringGrid");
+    const modal = document.getElementById("productModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const gallery = document.getElementById("gallery");
+    const descriptionImages = document.getElementById("descriptionImages");
+    const selectProduct = document.getElementById("selectProduct");
+    const selectedGift = document.getElementById("selectedGift");
+    const copyButton = document.getElementById("copyButton");
+    let activeProduct;
+
+    function createCard(product) {
+      const card = document.createElement("button");
+      card.className = "product-card";
+      card.type = "button";
+      card.dataset.productId = product.id;
+      card.innerHTML = `
+        <div class="card-photo">
+          <img src="${product.images[0]}" alt="${product.name}" loading="lazy">
+        </div>
+        <div class="card-body">
+          <span class="card-label">
+            <strong>${product.name}</strong>
+            <small>${product.note}</small>
+          </span>
+          <span class="card-mark" aria-hidden="true">+</span>
+        </div>
+      `;
+      card.addEventListener("click", () => openModal(product));
+      return card;
+    }
+
+    function openModal(product) {
+      activeProduct = product;
+      modalTitle.textContent = product.name;
+      gallery.innerHTML = product.images
+        .map((image, index) => `<img src="${image}" alt="${product.name} 제품 사진 ${index + 1}" loading="lazy">`)
+        .join("");
+      descriptionImages.innerHTML = product.details
+        .map((image, index) => `
+          <picture>
+            <source media="(max-width: 600px)" srcset="${image.mobile}">
+            <img src="${image.desktop}" alt="${product.name} 제품 설명 ${index + 1}" loading="lazy">
+          </picture>
+        `)
+        .join("");
+      selectProduct.textContent = document.querySelector(`[data-product-id="${product.id}"]`).classList.contains("selected")
+        ? "선택 완료"
+        : "이 제품 선택";
+      modal.classList.add("open");
+      document.body.classList.add("modal-open");
+      document.getElementById("closeModal").focus();
+    }
+
+    function closeModal() {
+      modal.classList.remove("open");
+      document.body.classList.remove("modal-open");
+    }
+
+    function chooseProduct() {
+      document.querySelectorAll(".product-card").forEach((card) => {
+        card.classList.toggle("selected", card.dataset.productId === activeProduct.id);
+        card.querySelector(".card-mark").textContent = card.dataset.productId === activeProduct.id ? "✓" : "+";
+      });
+      selectedGift.textContent = activeProduct.name;
+      copyButton.disabled = false;
+      copyButton.textContent = "선택 복사";
+      closeModal();
+    }
+
+    async function copySelection() {
+      const message = `생일선물은 "${selectedGift.textContent}"으로 골랐어!`;
+      let copied = false;
+
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(message);
+          copied = true;
+        } catch {}
+      }
+
+      if (!copied) {
+        const textArea = document.createElement("textarea");
+        textArea.value = message;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      }
+
+      copyButton.textContent = "복사 완료";
+    }
+
+    products.forEach((product) => {
+      const grid = product.type === "wallet" ? walletGrid : ringGrid;
+      grid.appendChild(createCard(product));
+    });
+
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    selectProduct.addEventListener("click", chooseProduct);
+    copyButton.addEventListener("click", copySelection);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeModal();
+    });
+  </script>
+</body>
+</html>
